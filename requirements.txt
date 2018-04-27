@@ -2,3 +2,4 @@ flask == 0.12.2
 passlib == 1.7.1
 flask_sqlalchemy == 2.3.2
 gunicorn == 19.7.1
+psycopg2
