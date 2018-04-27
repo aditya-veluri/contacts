@@ -1,1 +1,1 @@
-from .contacts.contacts.contacts import app, db
+from contacts import app, db
