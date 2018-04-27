@@ -1,0 +1,14 @@
+{% block body %}
+  <h2>Add Contact</h2>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+  <form action="{{ url_for('save_contact',contact_id = c) }}" method=post>
+    <dl>
+      <dt>Name:
+      <dd><input type=text name=username value={{c.username}}>
+      <dt>Email ID:
+      <dd><input type=text name=email value={{c.email}}>
+      <dd><input type=submit value=Save>
+    </dl>
+  </form>
+  </br><b><a href = '/'>click here to go back to home page</a></b>
+{% endblock %}

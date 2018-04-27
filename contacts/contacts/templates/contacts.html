@@ -1,0 +1,17 @@
+<html>
+<body>
+      <b><a href = '/new_contact'>Add contact</a></b>
+      <table border = 1>
+         {% for d in data %}
+         
+            <tr>
+               <th> {{ d.username }} </th>
+               <td> <a href = "{{ url_for('remove_contact',contact_id = d) }}">Delete</a> </td>
+               <td> <a href = "{{ url_for('edit_contact',contact_id = d) }}">Edit</a> </td>
+            </tr>
+            
+         {% endfor %}
+      </table>
+      </br><a href='/'>Back to home page</a>
+</body>
+</html>
