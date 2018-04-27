@@ -7,7 +7,8 @@ import os
 
 app = Flask(__name__)
 app.secret_key = 'any random string'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+#app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -38,14 +39,15 @@ def new_contact():
 def add_contact():
     username = request.form['username']
     email = request.form['email']
+    cur_user = session["username"]	
+    user_obj = User.query.filter_by(username=cur_user).first()
     #print "username = {} and email = {}".format(username, email)
     if username is None or email is None:
         abort(400) # missing arguments
-    if ContactBook.query.filter_by(email = email).first() is not None:
+    if ContactBook.query.filter_by(email = email, user_id = user_obj.id).first() is not None:
         abort(400) # existing email
 	
-    cur_user = session["username"]	
-    user_obj = User.query.filter_by(username=cur_user).first()
+
     #print "user_obj = {}".format(user_obj)
     contact = ContactBook(username=username, email=email)
     user_obj.contacts.append(contact)
@@ -82,11 +84,13 @@ def edit_contact(contact_id):
 def save_contact(contact_id):
     username = request.form['username']
     email = request.form['email']
-    if username is None or email is None:
-        abort(400) # missing arguments
-	
     cur_user = session["username"]	
     user_obj = User.query.filter_by(username=cur_user).first()
+    if username is None or email is None:
+        abort(400) # missing arguments
+    if ContactBook.query.filter_by(email = email, user_id = user_obj.id).first() is not None:
+        abort(400) # existing email		
+
     contact = ContactBook(username=username, email=email)
     user_obj.contacts = [i for i in user_obj.contacts if str(i) != str(contact_id)]
     db.session.add(user_obj)
@@ -116,6 +120,14 @@ def logout():
 	session.pop('username', None)
 	return redirect(url_for('index'))
 
+@app.route('/search_contact/<int:page_number>/<int:page_size>/<name>/<email>')
+def search_db(page_number, page_size, name, email):
+	offset = (page_number-1)*(page_size)
+	query = ContactBook.query.order_by(ContactBook.id).filter((ContactBook.username==name) | (ContactBook.email==email)).offset(offset).limit(page_size)
+	if(query is None):
+		return "<b>Not contacts found for the given parameters!!!</b>"
+	return render_template('search_result.html', data=query)
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -135,8 +147,12 @@ class ContactBook(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User',backref=db.backref('contacts', lazy=True, cascade="all, delete-orphan"))
 
-    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    username = db.Column(db.String(80), nullable=False, index=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
 
     def __repr__(self):
         return '<User %r>' % self.username
+
+# if __name__ == '__main__':
+# 	db.create_all()
+# 	app.run()

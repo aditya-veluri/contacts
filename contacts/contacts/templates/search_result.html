@@ -1,0 +1,15 @@
+<html>
+<body>
+      <table border = 1>
+         {% for d in data %}
+         
+            <tr>
+               <th> {{ d.username }} </th>
+               <td> {{ d.email }} </td>
+            </tr>
+            
+         {% endfor %}
+      </table>
+      </br><a href='/'>Back to home page</a>
+</body>
+</html>
